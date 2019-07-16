@@ -184,16 +184,22 @@ function createFile(file) {
 function mergeData() {
   return fs.readdir('./db-files').then(dirFiles => {
     const dbFiles = dirFiles.filter(file => file.includes('.json'));
-    const promiseArray = dbFiles.map(file => fs.readFile(`./db-files/${file}`, 'utf8'));
+    const promiseArray = dbFiles.map(file =>
+      fs
+        .readFile(`./db-files/${file}`, 'utf8')
+        .catch(err => addToLog(`Failed to read from '${file}'`, err)),
+    );
     const megaData = {};
-    return Promise.all(promiseArray).then(allFileData => {
-      allFileData.forEach((fileDataJSON, index) => {
-        const filename = dbFiles[index].replace('.json', '');
-        const fileData = JSON.parse(fileDataJSON);
-        megaData[filename] = fileData;
-      });
-      return addToLog(JSON.stringify(megaData));
-    });
+    return Promise.all(promiseArray)
+      .then(allFileData => {
+        allFileData.forEach((fileDataJSON, index) => {
+          const filename = dbFiles[index].replace('.json', '');
+          const fileData = JSON.parse(fileDataJSON);
+          megaData[filename] = fileData;
+        });
+        return addToLog(JSON.stringify(megaData));
+      })
+      .catch(err => addToLog('Failed to merge data', err));
   });
 }
 
@@ -205,7 +211,39 @@ function mergeData() {
  *  union('scott.json', 'andrew.json')
  *  // ['firstname', 'lastname', 'email', 'username']
  */
-function union(fileA, fileB) {}
+function union(fileA, fileB) {
+  return Promise.all([
+    fs
+      .readFile(`./db-files/${fileA}`, 'utf8')
+      .catch(err => addToLog(`Failed to read from '${fileA}'`, err)),
+    fs
+      .readFile(`./db-files/${fileB}`, 'utf8')
+      .catch(err => addToLog(`Failed to read from '${fileB}'`, err)),
+  ])
+    .then(allFileData => {
+      const dataAKeys = Object.keys(JSON.parse(allFileData[0]));
+      const dataBKeys = Object.keys(JSON.parse(allFileData[1]));
+      if (!dataAKeys)
+        return addToLog(
+          `file '${fileA}' does not contain an object`,
+          `File '${fileA}' Not Parse-able`,
+        );
+      if (!dataBKeys)
+        return addToLog(
+          `file '${fileB}' does not contain an object`,
+          `File '${fileB}' Not Parse-able`,
+        );
+      const keysUnion = {};
+      dataAKeys.forEach(key => {
+        keysUnion[key] = true;
+      });
+      dataBKeys.forEach(key => {
+        keysUnion[key] = true;
+      });
+      return addToLog(JSON.stringify(Object.keys(keysUnion)));
+    })
+    .catch(err => addToLog('Union failed', err));
+}
 
 /**
  * Takes two files and logs all the properties that both objects share
@@ -215,7 +253,33 @@ function union(fileA, fileB) {}
  *    intersect('scott.json', 'andrew.json')
  *    // ['firstname', 'lastname', 'email']
  */
-function intersect(fileA, fileB) {}
+function intersect(fileA, fileB) {
+  return Promise.all([
+    fs
+      .readFile(`./db-files/${fileA}`, 'utf8')
+      .catch(err => addToLog(`Failed to read from '${fileA}'`, err)),
+    fs
+      .readFile(`./db-files/${fileB}`, 'utf8')
+      .catch(err => addToLog(`Failed to read from '${fileB}'`, err)),
+  ])
+    .then(allFileData => {
+      const dataA = JSON.parse(allFileData[0]);
+      const dataB = JSON.parse(allFileData[1]);
+      if (!dataA)
+        return addToLog(
+          `file '${fileA}' does not contain an object`,
+          `File '${fileA}' Not Parse-able`,
+        );
+      if (!dataB)
+        return addToLog(
+          `file '${fileB}' does not contain an object`,
+          `File '${fileB}' Not Parse-able`,
+        );
+      const commonKeys = Object.keys(dataA).filter(key => dataB[key]);
+      return addToLog(JSON.stringify(commonKeys));
+    })
+    .catch(err => addToLog('Intersection failed', err));
+}
 
 /**
  * Takes two files and logs all properties that are different between the two objects
@@ -225,7 +289,34 @@ function intersect(fileA, fileB) {}
  *    difference('scott.json', 'andrew.json')
  *    // ['username']
  */
-function difference(fileA, fileB) {}
+function difference(fileA, fileB) {
+  return Promise.all([
+    fs
+      .readFile(`./db-files/${fileA}`, 'utf8')
+      .catch(err => addToLog(`Failed to read from '${fileA}'`, err)),
+    fs
+      .readFile(`./db-files/${fileB}`, 'utf8')
+      .catch(err => addToLog(`Failed to read from '${fileB}'`, err)),
+  ])
+    .then(allFileData => {
+      const dataA = JSON.parse(allFileData[0]);
+      const dataB = JSON.parse(allFileData[1]);
+      if (!dataA)
+        return addToLog(
+          `file '${fileA}' does not contain an object`,
+          `File '${fileA}' Not Parse-able`,
+        );
+      if (!dataB)
+        return addToLog(
+          `file '${fileB}' does not contain an object`,
+          `File '${fileB}' Not Parse-able`,
+        );
+      const uniqueToA = Object.keys(dataA).filter(key => !dataB[key]);
+      const uniqueToB = Object.keys(dataB).filter(key => !dataA[key]);
+      return addToLog(JSON.stringify(uniqueToA.concat(uniqueToB)));
+    })
+    .catch(err => addToLog('Difference failed', err));
+}
 
 module.exports = {
   reset,

@@ -1,1 +1,11 @@
 === Beginning of Log ===
+["firstname","lastname","email","username"] | 1563296983970
+["firstname","lastname","email"] | 1563297004418
+["username"] | 1563297016309
+ERROR: Failed to read from 'blah.json' | 1563297029765
+ERROR: Union failed | 1563297029767
+ERROR: Failed to read from 'blah2.json' | 1563297061244
+ERROR: Intersection failed | 1563297061247
+ERROR: Failed to read from 'blah2.json' | 1563297076643
+ERROR: Failed to read from 'blah1.json' | 1563297076643
+ERROR: Difference failed | 1563297076645
