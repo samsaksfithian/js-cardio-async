@@ -148,6 +148,7 @@ function deleteFile(file) {
  * Creates file with an empty object inside.
  * Gracefully errors if the file already exists.
  * @param {string} file JSON filename
+ * @returns {Promise}
  */
 function createFile(file) {
   return fs
@@ -180,6 +181,7 @@ function createFile(file) {
  *      "date": "July 15, 2019"
  *    }
  * }
+ * @returns {Promise}
  */
 function mergeData() {
   return fs.readdir('./db-files').then(dirFiles => {
@@ -189,18 +191,50 @@ function mergeData() {
         .readFile(`./db-files/${file}`, 'utf8')
         .catch(err => addToLog(`Failed to read from '${file}'`, err)),
     );
-    const megaData = {};
     return Promise.all(promiseArray)
       .then(allFileData => {
+        const megaData = {};
         allFileData.forEach((fileDataJSON, index) => {
           const filename = dbFiles[index].replace('.json', '');
           const fileData = JSON.parse(fileDataJSON);
           megaData[filename] = fileData;
         });
-        return addToLog(JSON.stringify(megaData));
+        // return addToLog(JSON.stringify(megaData));
+        return JSON.stringify(megaData);
       })
+      .then(mergedDataStr => {
+        return fs
+          .writeFile('mergedData.json', mergedDataStr)
+          .catch(err => addToLog('Failed to write to mergedData.json', err));
+      })
+      .then(() => addToLog('Successfully merged files and added to mergedData.json'))
       .catch(err => addToLog('Failed to merge data', err));
   });
+}
+
+/**
+ * Async version of the Promise-based mergeData function
+ * @returns {Promise}
+ */
+async function mergeDataAsync() {
+  try {
+    const dirFiles = await fs.readdir('./db-files');
+    const dbFiles = dirFiles.filter(file => file.includes('.json'));
+    const megaData = {};
+    dbFiles.forEach(async file => {
+      const fileDataJSON = await fs
+        .readFile(file, 'utf8')
+        .catch(err => addToLog(`Failed to read from '${file}'`, err));
+      const filename = file.replace('.json', '');
+      megaData[filename] = JSON.parse(fileDataJSON);
+    });
+    await fs
+      .writeFile('mergedData.json', JSON.stringify(megaData))
+      .catch(err => addToLog('Failed to write to mergedData.json', err));
+    return addToLog('Successfully merged files and added to mergedData.json'))
+  } catch (err) {
+    return addToLog('Failed to merge data asynchronously', err);
+  }
 }
 
 /**
@@ -326,6 +360,7 @@ module.exports = {
   deleteFile,
   createFile,
   mergeData,
+  mergeDataAsync,
   union,
   intersect,
   difference,

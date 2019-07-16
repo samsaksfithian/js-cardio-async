@@ -1,0 +1,18 @@
+{
+  "andrew": {
+    "firstname": "Andrew",
+    "lastname": "Maney",
+    "email": "amaney@talentpath.com"
+  },
+  "post": {
+    "title": "Async/Await lesson",
+    "description": "How to write asynchronous JavaScript",
+    "date": "July 15, 2019"
+  },
+  "scott": {
+    "firstname": "Scott",
+    "lastname": "Roberts",
+    "email": "sroberts@talentpath.com",
+    "username": "scoot"
+  }
+}
