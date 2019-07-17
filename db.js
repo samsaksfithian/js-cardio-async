@@ -68,6 +68,7 @@ function addToLog(info, error = null) {
  * Logs the value of object[key]
  * @param {string} file
  * @param {string} key
+ * @returns {Promise}
  */
 function get(file, key) {
   return fs
@@ -91,6 +92,7 @@ function get(file, key) {
  * @param {string} file
  * @param {string} key
  * @param {string} value
+ * @returns {Promise}
  */
 function set(file, key, value) {
   return fs
@@ -105,7 +107,7 @@ function set(file, key, value) {
       data[key] = value;
       return fs.writeFile(`./db-files/${file}`, JSON.stringify(data));
     })
-    .then(addToLog(`${file} successfully set ${key} to be ${value}`))
+    .then(() => addToLog(`${file} successfully set ${key} to be ${value}`))
     .catch(err => addToLog(`problem reading/writing to '${file}'`, err));
 }
 
@@ -113,6 +115,7 @@ function set(file, key, value) {
  * Deletes key from object and rewrites object to file
  * @param {string} file
  * @param {string} key
+ * @returns {Promise}
  */
 function remove(file, key) {
   return fs
@@ -127,7 +130,7 @@ function remove(file, key) {
       delete data[key];
       return fs.writeFile(`./db-files/${file}`, JSON.stringify(data));
     })
-    .then(addToLog(`${file} successfully removed ${key}`))
+    .then(() => addToLog(`${file} successfully removed ${key}`))
     .catch(err => addToLog(`problem removing from '${file}'`, err));
 }
 
@@ -135,13 +138,17 @@ function remove(file, key) {
  * Deletes file.
  * Gracefully errors if the file does not exist.
  * @param {string} file
+ * @returns {Promise}
  */
 function deleteFile(file) {
-  return fs
-    .access(`./db-files/${file}`)
-    .then(() => fs.unlink(`./db-files/${file}`))
-    .then(() => addToLog(`Successfully deleted '${file}'`))
-    .catch(err => addToLog(`Cannot delete file, '${file}' does not exist`, err));
+  return (
+    fs
+      .access(`./db-files/${file}`)
+      // potentially unnecessary, because unlink will fail if the file doesn't exist
+      .then(() => fs.unlink(`./db-files/${file}`))
+      .then(() => addToLog(`Successfully deleted '${file}'`))
+      .catch(err => addToLog(`Cannot delete file, '${file}' does not exist`, err))
+  );
 }
 
 /**
@@ -160,8 +167,28 @@ function createFile(file) {
       fs
         .writeFile(`./db-files/${file}`, '{}')
         .then(() => addToLog(`Successfully created '${file}'`))
-        .catch(err => addToLog(`Problem deleting '${file}'`, err)),
+        .catch(err => addToLog(`Cannot write to file`, err)),
     );
+}
+
+/**
+ * Creates file with an empty object inside.
+ * Async version of promise-based createFile function
+ * Gracefully errors if the file already exists.
+ * @param {string} file JSON filename
+ * @returns {Promise}
+ */
+async function createFileAsync(file) {
+  try {
+    await fs.access(file);
+    return addToLog(
+      `Cannot create file, '${file}' already exists`,
+      'File already exists',
+    );
+  } catch (err) {
+    await fs.writeFile(file, '{}').catch(err => addToLog(`Cannot write to file`, err));
+    return addToLog(`Successfully created ${file}`);
+  }
 }
 
 /**
@@ -199,14 +226,13 @@ function mergeData() {
           const fileData = JSON.parse(fileDataJSON);
           megaData[filename] = fileData;
         });
-        // return addToLog(JSON.stringify(megaData));
         return JSON.stringify(megaData);
       })
-      .then(mergedDataStr => {
-        return fs
+      .then(mergedDataStr =>
+        fs
           .writeFile('mergedData.json', mergedDataStr)
-          .catch(err => addToLog('Failed to write to mergedData.json', err));
-      })
+          .catch(err => addToLog('Failed to write to mergedData.json', err)),
+      )
       .then(() => addToLog('Successfully merged files and added to mergedData.json'))
       .catch(err => addToLog('Failed to merge data', err));
   });
@@ -231,7 +257,7 @@ async function mergeDataAsync() {
     await fs
       .writeFile('mergedData.json', JSON.stringify(megaData))
       .catch(err => addToLog('Failed to write to mergedData.json', err));
-    return addToLog('Successfully merged files and added to mergedData.json'))
+    return addToLog('Successfully merged files and added to mergedData.json');
   } catch (err) {
     return addToLog('Failed to merge data asynchronously', err);
   }
@@ -244,6 +270,7 @@ async function mergeDataAsync() {
  * @example
  *  union('scott.json', 'andrew.json')
  *  // ['firstname', 'lastname', 'email', 'username']
+ * @returns {Promise}
  */
 function union(fileA, fileB) {
   return Promise.all([
@@ -286,6 +313,7 @@ function union(fileA, fileB) {
  * @example
  *    intersect('scott.json', 'andrew.json')
  *    // ['firstname', 'lastname', 'email']
+ * @returns {Promise}
  */
 function intersect(fileA, fileB) {
   return Promise.all([
@@ -322,6 +350,7 @@ function intersect(fileA, fileB) {
  * @example
  *    difference('scott.json', 'andrew.json')
  *    // ['username']
+ * @returns {Promise}
  */
 function difference(fileA, fileB) {
   return Promise.all([
@@ -359,6 +388,7 @@ module.exports = {
   remove,
   deleteFile,
   createFile,
+  createFileAsync,
   mergeData,
   mergeDataAsync,
   union,
