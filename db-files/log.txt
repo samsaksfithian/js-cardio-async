@@ -10,3 +10,4 @@ ERROR: Failed to read from 'blah2.json' | 1563297076643
 ERROR: Failed to read from 'blah1.json' | 1563297076643
 ERROR: Difference failed | 1563297076645
 Successfully merged files and added to mergedData.json | 1563301375907
+scott.json successfully set firstname to be Scoot | 1563399668723

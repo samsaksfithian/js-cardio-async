@@ -381,7 +381,10 @@ function difference(fileA, fileB) {
     .catch(err => addToLog('Difference failed', err));
 }
 
+const PORT = 4196;
+
 module.exports = {
+  PORT,
   reset,
   get,
   set,
