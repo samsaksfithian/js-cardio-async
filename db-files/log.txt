@@ -11,3 +11,15 @@ ERROR: Failed to read from 'blah1.json' | 1563297076643
 ERROR: Difference failed | 1563297076645
 Successfully merged files and added to mergedData.json | 1563301375907
 scott.json successfully set firstname to be Scoot | 1563399668723
+scott.json successfully set firstname to be Scoot | 1563465631153
+scott.json successfully set firstname to be Sco0o0ot | 1563465643936
+ERROR: problem reading/writing to 'blah.json' | 1563474058468
+ERROR: problem reading/writing to 'blah.json' | 1563474096611
+ERROR: problem reading/writing to 'blah.json' | 1563474107300
+ERROR: problem reading/writing to 'blah.json' | 1563474148946
+Successfully created 'kevin.json' | 1563477136145
+ERROR: Cannot create file, 'kevin.json' already exists | 1563477154729
+Successfully created 'kevin.json' | 1563477154735
+ERROR: problem reading/getting from 'undefined' | 1563484226629
+{"firstname":"Sco0o0ot","lastname":"Roberts","email":"sroberts@talentpath.com","username":"scoot"} | 1563486491448
+{"firstname":"Sco0o0ot","lastname":"Roberts","email":"sroberts@talentpath.com","username":"scoot"} | 1563486931918

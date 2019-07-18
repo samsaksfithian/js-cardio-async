@@ -51,17 +51,36 @@ function reset() {
 }
 
 /**
- * Appends the given info to the log file with a timestamp
+ * Promise constructor.
+ * Resolves if no access, rejects if access.
+ * @param {string} file file to test access
+ */
+const noAccess = file =>
+  new Promise((resolve, reject) =>
+    fs
+      .access(file)
+      .then(reject)
+      .catch(resolve),
+  );
+
+/**
+ * Appends the given info to the log file with a timestamp.
+ * Logs to console.error and throws error, if it exists
  * @param {string} info the info to be logged
  * @param {Error} [error] the actual error, if it was an error
  * @returns {Promise}
  */
-function addToLog(info, error = null) {
-  if (error) console.error(error);
-  return fs.appendFile(
+async function addToLog(info, error = undefined) {
+  await fs.appendFile(
     './db-files/log.txt',
     `${error ? 'ERROR: ' : ''}${info} | ${Date.now()}\n`,
   );
+  // pass along (throw) the error if it exists
+  if (error) {
+    console.error(error);
+    throw error;
+  }
+  return info;
 }
 
 /**
@@ -78,13 +97,27 @@ function get(file, key) {
       if (!data)
         return addToLog(
           `file '${file}' does not contain an object`,
-          'File Not Parse-able',
+          Error('File Not Parse-able'),
         );
       const info = data[key];
       if (!info) return addToLog(`invalid key '${key}'`, 'Invalid Key');
       return addToLog(info);
     })
     .catch(err => addToLog(`problem reading/getting from '${file}'`, err));
+}
+
+/**
+ * Returns the un-parsed contents of the specified file
+ * @param {string} file the name of the file to be accessed
+ * @returns {Promise}
+ */
+async function getFile(file) {
+  try {
+    const fileData = await fs.readFile(`./db-files/${file}`);
+    return addToLog(fileData);
+  } catch (err) {
+    return addToLog(`problem reading/getting from '${file}'`, err);
+  }
 }
 
 /**
@@ -102,7 +135,7 @@ function set(file, key, value) {
       if (!data)
         return addToLog(
           `file '${file}' does not contain an object`,
-          'File Not Parse-able',
+          Error('File Not Parse-able'),
         );
       data[key] = value;
       return fs.writeFile(`./db-files/${file}`, JSON.stringify(data));
@@ -125,7 +158,7 @@ function remove(file, key) {
       if (!data)
         return addToLog(
           `file '${file}' does not contain an object`,
-          'File Not Parse-able',
+          Error('File Not Parse-able'),
         );
       delete data[key];
       return fs.writeFile(`./db-files/${file}`, JSON.stringify(data));
@@ -155,17 +188,21 @@ function deleteFile(file) {
  * Creates file with an empty object inside.
  * Gracefully errors if the file already exists.
  * @param {string} file JSON filename
+ * @param {Object} [content]
  * @returns {Promise}
  */
-function createFile(file) {
+function createFile(file, content = {}) {
   return fs
     .access(`./db-files/${file}`)
     .then(() =>
-      addToLog(`Cannot create file, '${file}' already exists`, 'File already exists'),
+      addToLog(
+        `Cannot create file, '${file}' already exists`,
+        Error('File already exists'),
+      ),
     )
     .catch(() =>
       fs
-        .writeFile(`./db-files/${file}`, '{}')
+        .writeFile(`./db-files/${file}`, JSON.stringify(content))
         .then(() => addToLog(`Successfully created '${file}'`))
         .catch(err => addToLog(`Cannot write to file`, err)),
     );
@@ -176,17 +213,20 @@ function createFile(file) {
  * Async version of promise-based createFile function
  * Gracefully errors if the file already exists.
  * @param {string} file JSON filename
+ * @param {Object} [content]
  * @returns {Promise}
  */
-async function createFileAsync(file) {
+async function createFileAsync(file, content = {}) {
   try {
     await fs.access(file);
     return addToLog(
       `Cannot create file, '${file}' already exists`,
-      'File already exists',
+      Error('File already exists'),
     );
   } catch (err) {
-    await fs.writeFile(file, '{}').catch(err => addToLog(`Cannot write to file`, err));
+    await fs
+      .writeFile(file, JSON.stringify(content))
+      .catch(err => addToLog(`Cannot write to file`, err));
     return addToLog(`Successfully created ${file}`);
   }
 }
@@ -381,12 +421,11 @@ function difference(fileA, fileB) {
     .catch(err => addToLog('Difference failed', err));
 }
 
-const PORT = 4196;
-
 module.exports = {
-  PORT,
   reset,
+  noAccess,
   get,
+  getFile,
   set,
   remove,
   deleteFile,
