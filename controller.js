@@ -9,6 +9,8 @@ exports.notFound = async (request, response) => {
   response.end(html);
 };
 
+// ===========================================================
+
 /**
  * Gets the homepage
  * @param {Object} request incoming message
@@ -37,11 +39,23 @@ exports.getStatus = (request, response) => {
   response.end(JSON.stringify(status));
 };
 
+// ===========================================================
+
+/**
+ * Gets and returns the value of the given key from the
+ * object in the given file
+ * @param {Object} request incoming message
+ * @param {Object} response server response
+ * @param {Object} query the parsed query from the url
+ * @param {string} query.file the name of the file to access
+ * @param {string} query.key the key to get from the object
+ */
 exports.getKeyFromFile = (request, response, { file, key }) => {
   if (!file || !key) {
     response.writeHead(400);
     return response.end('Bad Request');
   }
+
   return db
     .get(file, key)
     .then(value => {
@@ -55,7 +69,7 @@ exports.getKeyFromFile = (request, response, { file, key }) => {
 };
 
 /**
- *
+ * Gets and returns all of the data out of a given file
  * @param {Object} request incoming message
  * @param {Object} response server response
  * @param {string} pathname the path string
@@ -71,6 +85,90 @@ exports.getFile = (request, response, pathname) =>
       response.writeHead(400, { 'Content-Type': 'text/html' });
       response.end(err.message);
     });
+
+/**
+ * Takes two files and logs all the properties of both of them
+ * combined as a list without duplicates
+ * @param {Object} request incoming message
+ * @param {Object} response server response
+ * @param {Object} query the parsed query from the url
+ * @param {string} query.fileA the first file
+ * @param {string} query.fileB the second file
+ */
+exports.getUnion = (request, response, { fileA, fileB }) =>
+  db
+    .union(fileA, fileB)
+    .then(data => {
+      response.writeHead(200);
+      response.end(data);
+    })
+    .catch(err => {
+      response.writeHead(400, { 'Content-Type': 'text/html' });
+      response.end(err.message);
+    });
+
+/**
+ * Takes two files and returns all the properties
+ * that both objects share
+ * @param {Object} request incoming message
+ * @param {Object} response server response
+ * @param {Object} query the parsed query from the url
+ * @param {string} query.fileA the first file
+ * @param {string} query.fileB the second file
+ */
+exports.getIntersect = (request, response, { fileA, fileB }) =>
+  db
+    .intersect(fileA, fileB)
+    .then(data => {
+      response.writeHead(200);
+      response.end(data);
+    })
+    .catch(err => {
+      response.writeHead(400, { 'Content-Type': 'text/html' });
+      response.end(err.message);
+    });
+
+/**
+ * Takes two files and gets all properties that are
+ * different between the two objects
+ * @param {Object} request incoming message
+ * @param {Object} response server response
+ * @param {Object} query the parsed query from the url
+ * @param {string} query.fileA the first file
+ * @param {string} query.fileB the second file
+ */
+exports.getDifference = (request, response, { fileA, fileB }) =>
+  db
+    .difference(fileA, fileB)
+    .then(data => {
+      response.writeHead(200);
+      response.end(data);
+    })
+    .catch(err => {
+      response.writeHead(400, { 'Content-Type': 'text/html' });
+      response.end(err.message);
+    });
+
+/**
+ * Gets and returns the merged data from all of the database files
+ * @param {Object} request incoming message
+ * @param {Object} response server response
+ */
+exports.getMergedData = (request, response) =>
+  db
+    .mergeData()
+    .then(() => fs.readFile('mergedData.json'))
+    .then(fileData => {
+      response.writeHead(200, { 'Content-Type': 'application/json' });
+      response.end(fileData);
+    })
+    .catch(err => {
+      response.writeHead(400, { 'Content-Type': 'text/html' });
+      response.end(err.message);
+    });
+
+// ===========================================================
+// ===========================================================
 
 /**
  * Takes a query and sets the data in the database based
@@ -102,7 +200,34 @@ exports.patchSet = (request, response, { file, key, value }) => {
 };
 
 /**
- *
+ * Takes a query and removes some of the data in the
+ * database for the provided key
+ * @param {Object} request incoming message
+ * @param {Object} response server response
+ * @param {Object} query the parsed query from the url
+ */
+exports.patchRemove = (request, response, { file, key }) => {
+  if (!file || !key) {
+    response.writeHead(400);
+    return response.end('Bad Request');
+  }
+  return db
+    .remove(file, key)
+    .then(info => {
+      response.writeHead(200);
+      response.end(info);
+    })
+    .catch(err => {
+      response.writeHead(400, { 'Content-Type': 'text/html' });
+      response.end(err.message);
+    });
+};
+
+// ===========================================================
+// ===========================================================
+
+/**
+ * Creates a file with the data given in the request body
  * @param {Object} request incoming message
  * @param {Object} response server response
  * @param {string} pathname the path string
@@ -123,3 +248,28 @@ exports.postWrite = (request, response, pathname) => {
     }
   });
 };
+
+// ===========================================================
+// ===========================================================
+
+/**
+ * Deletes the specified
+ * @param {Object} request incoming message
+ * @param {Object} response server response
+ * @param {string} pathname the path string
+ */
+exports.deleteDelete = (request, response, pathname) =>
+  db
+    .deleteFile(pathname.split('/')[2])
+    .then(() => {
+      response.writeHead(200, { 'Content-Type': 'text/html' });
+      response.end('File deleted');
+    })
+    .catch(err => {
+      // file doesn't exist
+      response.writeHead(400, { 'Content-Type': 'text/html' });
+      response.end(err.message);
+    });
+
+// ===========================================================
+// ===========================================================

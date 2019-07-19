@@ -2,7 +2,7 @@ const http = require('http');
 const handleRoutes = require('./router');
 
 const server = http.createServer();
-const PORT = 4196;
+const PORT = 5555;
 
 server.on('request', handleRoutes);
 

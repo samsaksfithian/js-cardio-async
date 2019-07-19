@@ -192,20 +192,16 @@ function deleteFile(file) {
  * @returns {Promise}
  */
 function createFile(file, content = {}) {
-  return fs
-    .access(`./db-files/${file}`)
-    .then(() =>
+  return noAccess(`./db-files/${file}`)
+    .catch(() =>
       addToLog(
         `Cannot create file, '${file}' already exists`,
         Error('File already exists'),
       ),
     )
-    .catch(() =>
-      fs
-        .writeFile(`./db-files/${file}`, JSON.stringify(content))
-        .then(() => addToLog(`Successfully created '${file}'`))
-        .catch(err => addToLog(`Cannot write to file`, err)),
-    );
+    .then(() => fs.writeFile(`./db-files/${file}`, JSON.stringify(content)))
+    .then(() => addToLog(`Successfully created '${file}'`))
+    .catch(err => addToLog(`Cannot write to file`, err));
 }
 
 /**
@@ -283,6 +279,7 @@ function mergeData() {
  * @returns {Promise}
  */
 async function mergeDataAsync() {
+  // TODO: fix this, something is broken
   try {
     const dirFiles = await fs.readdir('./db-files');
     const dbFiles = dirFiles.filter(file => file.includes('.json'));
@@ -304,7 +301,8 @@ async function mergeDataAsync() {
 }
 
 /**
- * Takes two files and logs all the properties as a list without duplicates
+ * Takes two files and logs all the properties of both of them
+ * combined as a list without duplicates
  * @param {string} fileA
  * @param {string} fileB
  * @example
@@ -347,7 +345,8 @@ function union(fileA, fileB) {
 }
 
 /**
- * Takes two files and logs all the properties that both objects share
+ * Takes two files and logs all the properties
+ * that both objects share
  * @param {string} fileA
  * @param {string} fileB
  * @example
@@ -384,7 +383,8 @@ function intersect(fileA, fileB) {
 }
 
 /**
- * Takes two files and logs all properties that are different between the two objects
+ * Takes two files and logs all properties that are
+ * different between the two objects
  * @param {string} fileA
  * @param {string} fileB
  * @example

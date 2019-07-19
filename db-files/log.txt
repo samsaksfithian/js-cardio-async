@@ -1,25 +1,14 @@
 === Beginning of Log ===
-["firstname","lastname","email","username"] | 1563296983970
-["firstname","lastname","email"] | 1563297004418
-["username"] | 1563297016309
-ERROR: Failed to read from 'blah.json' | 1563297029765
-ERROR: Union failed | 1563297029767
-ERROR: Failed to read from 'blah2.json' | 1563297061244
-ERROR: Intersection failed | 1563297061247
-ERROR: Failed to read from 'blah2.json' | 1563297076643
-ERROR: Failed to read from 'blah1.json' | 1563297076643
-ERROR: Difference failed | 1563297076645
-Successfully merged files and added to mergedData.json | 1563301375907
-scott.json successfully set firstname to be Scoot | 1563399668723
-scott.json successfully set firstname to be Scoot | 1563465631153
-scott.json successfully set firstname to be Sco0o0ot | 1563465643936
-ERROR: problem reading/writing to 'blah.json' | 1563474058468
-ERROR: problem reading/writing to 'blah.json' | 1563474096611
-ERROR: problem reading/writing to 'blah.json' | 1563474107300
-ERROR: problem reading/writing to 'blah.json' | 1563474148946
-Successfully created 'kevin.json' | 1563477136145
-ERROR: Cannot create file, 'kevin.json' already exists | 1563477154729
-Successfully created 'kevin.json' | 1563477154735
-ERROR: problem reading/getting from 'undefined' | 1563484226629
-{"firstname":"Sco0o0ot","lastname":"Roberts","email":"sroberts@talentpath.com","username":"scoot"} | 1563486491448
-{"firstname":"Sco0o0ot","lastname":"Roberts","email":"sroberts@talentpath.com","username":"scoot"} | 1563486931918
+
+ERROR: Failed to read from 'andrew.json' | 1563490447709
+Successfully merged files and added to mergedData.json | 1563490447712
+ERROR: Failed to read from 'scott.json' | 1563490447710
+ERROR: Failed to read from 'post.json' | 1563490447710
+---------
+Successfully merged files and added to mergedData.json | 1563490489792
+Successfully created 'kevin.json' | 1563490528327
+Successfully merged files and added to mergedData.json | 1563490532354
+["lastname","email","firstname"] | 1563490957672
+["lastname","email","username","firstname"] | 1563490963399
+["username"] | 1563490968950
+["lastname","email","username","firstname"] | 1563490974379
