@@ -55,7 +55,7 @@ const handleRoutes = (request, response) => {
       return getFile(request, response, pathname);
     }
 
-    if (pathname.startsWith('/get')) {
+    if (pathname.startsWith('/get') && Object.keys(query).length > 0) {
       return getKeyFromFile(request, response, query);
     }
   }

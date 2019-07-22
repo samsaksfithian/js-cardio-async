@@ -112,12 +112,10 @@ function get(file, key) {
  * @returns {Promise}
  */
 async function getFile(file) {
-  try {
-    const fileData = await fs.readFile(`./db-files/${file}`);
-    return addToLog(fileData);
-  } catch (err) {
-    return addToLog(`problem reading/getting from '${file}'`, err);
-  }
+  return fs
+    .readFile(`./db-files/${file}`)
+    .then(fileData => addToLog(fileData))
+    .catch(err => addToLog(`problem reading/getting from '${file}'`, err));
 }
 
 /**
@@ -325,12 +323,12 @@ function union(fileA, fileB) {
       if (!dataAKeys)
         return addToLog(
           `file '${fileA}' does not contain an object`,
-          `File '${fileA}' Not Parse-able`,
+          Error(`File '${fileA}' Not Parse-able`),
         );
       if (!dataBKeys)
         return addToLog(
           `file '${fileB}' does not contain an object`,
-          `File '${fileB}' Not Parse-able`,
+          Error(`File '${fileB}' Not Parse-able`),
         );
       const keysUnion = {};
       dataAKeys.forEach(key => {
@@ -369,12 +367,12 @@ function intersect(fileA, fileB) {
       if (!dataA)
         return addToLog(
           `file '${fileA}' does not contain an object`,
-          `File '${fileA}' Not Parse-able`,
+          Error(`File '${fileA}' Not Parse-able`),
         );
       if (!dataB)
         return addToLog(
           `file '${fileB}' does not contain an object`,
-          `File '${fileB}' Not Parse-able`,
+          Error(`File '${fileB}' Not Parse-able`),
         );
       const commonKeys = Object.keys(dataA).filter(key => dataB[key]);
       return addToLog(JSON.stringify(commonKeys));
@@ -407,12 +405,12 @@ function difference(fileA, fileB) {
       if (!dataA)
         return addToLog(
           `file '${fileA}' does not contain an object`,
-          `File '${fileA}' Not Parse-able`,
+          Error(`File '${fileA}' Not Parse-able`),
         );
       if (!dataB)
         return addToLog(
           `file '${fileB}' does not contain an object`,
-          `File '${fileB}' Not Parse-able`,
+          Error(`File '${fileB}' Not Parse-able`),
         );
       const uniqueToA = Object.keys(dataA).filter(key => !dataB[key]);
       const uniqueToB = Object.keys(dataB).filter(key => !dataA[key]);

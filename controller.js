@@ -95,9 +95,12 @@ exports.getFile = (request, response, pathname) =>
  * @param {string} query.fileA the first file
  * @param {string} query.fileB the second file
  */
-exports.getUnion = (request, response, { fileA, fileB }) =>
-  db
-    .union(fileA, fileB)
+exports.getUnion = (request, response, { fileA, fileB }) => {
+  if (!fileA || !fileA.endsWith('.json') || !fileB || !fileB.endsWith('.json')) {
+    response.writeHead(400);
+    return response.end('Bad Request');
+  }
+  db.union(fileA, fileB)
     .then(data => {
       response.writeHead(200);
       response.end(data);
@@ -106,6 +109,7 @@ exports.getUnion = (request, response, { fileA, fileB }) =>
       response.writeHead(400, { 'Content-Type': 'text/html' });
       response.end(err.message);
     });
+};
 
 /**
  * Takes two files and returns all the properties
@@ -176,6 +180,9 @@ exports.getMergedData = (request, response) =>
  * @param {Object} request incoming message
  * @param {Object} response server response
  * @param {Object} query the parsed query from the url
+ * @param {string} query.file the name of the file to access
+ * @param {string} query.key the key to get from the object
+ * @param {string} query.value the value to set in the key
  */
 exports.patchSet = (request, response, { file, key, value }) => {
   // check if file, key, and value are all defined
@@ -205,6 +212,8 @@ exports.patchSet = (request, response, { file, key, value }) => {
  * @param {Object} request incoming message
  * @param {Object} response server response
  * @param {Object} query the parsed query from the url
+ * @param {string} query.file the name of the file to access
+ * @param {string} query.key the key to get from the object
  */
 exports.patchRemove = (request, response, { file, key }) => {
   if (!file || !key) {
